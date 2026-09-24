@@ -71,7 +71,11 @@ public class CalculadoraController {
                 }
             }
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+            e.printStackTrace(); // Esto lo imprimirá en los logs de Docker
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Fallo al leer NFS: " + e.getMessage());
+            error.put("contenedor_id", System.getenv().getOrDefault("HOSTNAME", "Desconocido"));
+            return ResponseEntity.status(500).body(error);
         }
 
         // Construir la respuesta con el ID del contenedor que atendió la petición
@@ -114,8 +118,12 @@ public class CalculadoraController {
             }
 
         } catch (IOException e) {
-            archivoTemporal.delete(); // Limpiar si hay error
-            return ResponseEntity.internalServerError().build();
+            archivoTemporal.delete();
+            e.printStackTrace(); // Esto lo imprimirá en los logs de Docker
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Fallo al leer NFS: " + e.getMessage());
+            error.put("contenedor_id", System.getenv().getOrDefault("HOSTNAME", "Desconocido"));
+            return ResponseEntity.status(500).body(error);
         }
 
         Map<String, Object> respuesta = new HashMap<>();
@@ -127,7 +135,11 @@ public class CalculadoraController {
                 respuesta.put("mensaje", "Registro " + id + " modificado exitosamente");
                 return ResponseEntity.ok(respuesta);
             } catch (IOException e) {
-                return ResponseEntity.internalServerError().build();
+                e.printStackTrace(); // Esto lo imprimirá en los logs de Docker
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Fallo al leer NFS: " + e.getMessage());
+                error.put("contenedor_id", System.getenv().getOrDefault("HOSTNAME", "Desconocido"));
+                return ResponseEntity.status(500).body(error);
             }
         } else {
             archivoTemporal.delete();
