@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping("/api/personas")
@@ -36,7 +37,7 @@ public class PersonaController {
     @GetMapping
     public ResponseEntity<Page<Persona>> listar(@RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "5") int size) {
-        Page<Persona> resultado = personaRepository.findAll(PageRequest.of(page, size));
+        Page<Persona> resultado = personaRepository.findAll(PageRequest.of(page, size, Sort.by("id").ascending()));
         return ResponseEntity.ok()
                 .header("X-Contenedor-ID", contenedorId)
                 .body(resultado);
