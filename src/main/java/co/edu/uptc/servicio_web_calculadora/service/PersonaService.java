@@ -1,11 +1,11 @@
 package co.edu.uptc.servicio_web_calculadora.service;
 
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // <-- Importante
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import co.edu.uptc.servicio_web_calculadora.model.Persona;
@@ -20,6 +20,7 @@ public class PersonaService {
         this.personaRepository = personaRepository;
     }
 
+    @Transactional(readOnly = true) // <-- Mantener la transaccion abierta para el streaming de la BD
     public StreamingResponseBody obtenerPersonasStream(int limite) {
         return outputStream -> {
             try (Stream<Persona> stream = personaRepository.obtenerTodasStream()) {
@@ -41,7 +42,7 @@ public class PersonaService {
                         }
 
                         String json = String.format(
-                                "{\"id\":\"%s\",\"nombre\":\"%s\",\"apellido\":\"%s\"}",
+                                "{\"id\":%d,\"nombre\":\"%s\",\"apellido\":\"%s\"}",
                                 persona.getId(), persona.getNombre(), persona.getApellido()
                         );
                         outputStream.write(json.getBytes(StandardCharsets.UTF_8));
@@ -53,7 +54,7 @@ public class PersonaService {
                 outputStream.write("\n]".getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
             } catch (Exception e) {
-                System.err.println("Error procesando el archivo masivo: " + e.getMessage());
+                System.err.println("Error procesando los registros de la base de datos: " + e.getMessage());
             }
         };
     }
