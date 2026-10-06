@@ -33,7 +33,7 @@ public class PersonaController {
                     PageRequest.of(page, size)
         );
         RespuestaWrapper<Slice<Persona>> nivelInterno = new RespuestaWrapper<>(contenedorId, resultado);
-        RespuestaWrapper<RespuestaWrapper<Slice<Persona>>> nivelExterno = new RespuestaWrapper<>("Titulo:asddasdasd", nivelInterno);
+        RespuestaWrapper<RespuestaWrapper<Slice<Persona>>> nivelExterno = new RespuestaWrapper<>("Titulo:11111", nivelInterno);
         return ResponseEntity.ok(nivelExterno);
     }
 
@@ -47,7 +47,7 @@ public class PersonaController {
 
                     RespuestaWrapper<Persona> nivelInterno = new RespuestaWrapper<>(contenedorId, guardada);
 
-                    RespuestaWrapper<RespuestaWrapper<Persona>> nivelExterno = new RespuestaWrapper<>("Titulo: asdasdasd", nivelInterno);
+                    RespuestaWrapper<RespuestaWrapper<Persona>> nivelExterno = new RespuestaWrapper<>("Titulo:11111", nivelInterno);
 
                     return ResponseEntity.ok(nivelExterno);
                 })
