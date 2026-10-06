@@ -22,25 +22,30 @@ public class PersonaController {
     private String contenedorId;
 
     @GetMapping
-    public ResponseEntity<RespuestaWrapper<Page<Persona>>> listar(
+    public ResponseEntity<RespuestaWrapper<RespuestaWrapper<Page<Persona>>>> listar(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-
         Page<Persona> resultado = personaRepository.findAll(
                 PageRequest.of(page, size, Sort.by("id").ascending())
         );
-
-        return ResponseEntity.ok(new RespuestaWrapper<>(contenedorId, resultado));
+        RespuestaWrapper<Page<Persona>> nivelInterno = new RespuestaWrapper<>(contenedorId, resultado);
+        RespuestaWrapper<RespuestaWrapper<Page<Persona>>> nivelExterno = new RespuestaWrapper<>("Titulo: Titulo antiguo", nivelInterno);
+        return ResponseEntity.ok(nivelExterno);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RespuestaWrapper<Persona>> actualizar(@PathVariable Long id, @RequestBody Persona datos) {
+    public ResponseEntity<RespuestaWrapper<RespuestaWrapper<Persona>>> actualizar(@PathVariable Long id, @RequestBody Persona datos) {
         return personaRepository.findById(id)
                 .map(persona -> {
                     persona.setNombre(datos.getNombre());
                     persona.setApellido(datos.getApellido());
                     Persona guardada = personaRepository.save(persona);
-                    return ResponseEntity.ok(new RespuestaWrapper<>(contenedorId, guardada));
+
+                    RespuestaWrapper<Persona> nivelInterno = new RespuestaWrapper<>(contenedorId, guardada);
+
+                    RespuestaWrapper<RespuestaWrapper<Persona>> nivelExterno = new RespuestaWrapper<>("Titulo: Titulo antiguo", nivelInterno);
+
+                    return ResponseEntity.ok(nivelExterno);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
