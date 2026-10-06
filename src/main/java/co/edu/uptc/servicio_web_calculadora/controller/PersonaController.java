@@ -3,11 +3,10 @@ package co.edu.uptc.servicio_web_calculadora.controller;
 import co.edu.uptc.servicio_web_calculadora.dto.RespuestaWrapper;
 import co.edu.uptc.servicio_web_calculadora.model.Persona;
 import co.edu.uptc.servicio_web_calculadora.repository.PersonaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import co.edu.uptc.servicio_web_calculadora.service.PersonaService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,21 +14,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/personas")
 public class PersonaController {
 
-    @Autowired
-    private PersonaRepository personaRepository;
+    private final PersonaRepository personaRepository;
+    private final PersonaService personaService;
 
     @Value("${CONTENEDOR_ID:desconocido}")
     private String contenedorId;
 
+    public PersonaController(PersonaRepository personaRepository, PersonaService personaService) {
+        this.personaRepository = personaRepository;
+        this.personaService = personaService;
+    }
+
     @GetMapping
-    public ResponseEntity<RespuestaWrapper<RespuestaWrapper<Page<Persona>>>> listar(
+    public ResponseEntity<RespuestaWrapper<RespuestaWrapper<Slice<Persona>>>> listar(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        Page<Persona> resultado = personaRepository.findAll(
-                PageRequest.of(page, size, Sort.by("id").ascending())
+        Slice<Persona> resultado = personaService.obtenerPersonas(
+                    PageRequest.of(page, size)
         );
-        RespuestaWrapper<Page<Persona>> nivelInterno = new RespuestaWrapper<>(contenedorId, resultado);
-        RespuestaWrapper<RespuestaWrapper<Page<Persona>>> nivelExterno = new RespuestaWrapper<>("Titulo:asddasdasd", nivelInterno);
+        RespuestaWrapper<Slice<Persona>> nivelInterno = new RespuestaWrapper<>(contenedorId, resultado);
+        RespuestaWrapper<RespuestaWrapper<Slice<Persona>>> nivelExterno = new RespuestaWrapper<>("Titulo:asddasdasd", nivelInterno);
         return ResponseEntity.ok(nivelExterno);
     }
 

@@ -1,12 +1,10 @@
 package co.edu.uptc.servicio_web_calculadora.service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // <-- Importante
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.uptc.servicio_web_calculadora.model.Persona;
 import co.edu.uptc.servicio_web_calculadora.repository.PersonaRepository;
@@ -14,48 +12,20 @@ import co.edu.uptc.servicio_web_calculadora.repository.PersonaRepository;
 @Service
 public class PersonaService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final PersonaRepository personaRepository;
 
     public PersonaService(PersonaRepository personaRepository) {
         this.personaRepository = personaRepository;
     }
 
-    @Transactional(readOnly = true) // <-- Mantener la transaccion abierta para el streaming de la BD
-    public StreamingResponseBody obtenerPersonasStream(int limite) {
-        return outputStream -> {
-            try (Stream<Persona> stream = personaRepository.obtenerTodasStream()) {
-                outputStream.write("[\n".getBytes(StandardCharsets.UTF_8));
-
-                AtomicBoolean esPrimeraLinea = new AtomicBoolean(true);
-                Stream<Persona> streamFinal = stream;
-
-                if (limite > 0) {
-                    streamFinal = streamFinal.limit(limite);
-                }
-
-                streamFinal.forEach(persona -> {
-                    try {
-                        if (!esPrimeraLinea.get()) {
-                            outputStream.write(",\n".getBytes(StandardCharsets.UTF_8));
-                        } else {
-                            esPrimeraLinea.set(false);
-                        }
-
-                        String json = String.format(
-                                "{\"id\":%d,\"nombre\":\"%s\",\"apellido\":\"%s\"}",
-                                persona.getId(), persona.getNombre(), persona.getApellido()
-                        );
-                        outputStream.write(json.getBytes(StandardCharsets.UTF_8));
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error escribiendo stream", e);
-                    }
-                });
-
-                outputStream.write("\n]".getBytes(StandardCharsets.UTF_8));
-                outputStream.flush();
-            } catch (Exception e) {
-                System.err.println("Error procesando los registros de la base de datos: " + e.getMessage());
-            }
-        };
+    @Transactional(readOnly = true)
+    public Slice<Persona> obtenerPersonas(Pageable pageable) {
+        Pageable paginaLimitada = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), MAX_PAGE_SIZE)
+        );
+        return personaRepository.buscarTodas(paginaLimitada);
     }
 }
